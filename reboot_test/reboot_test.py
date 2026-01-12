@@ -11,56 +11,54 @@ class RebootTest(base_test.BaseTestClass):
         self.dut = self.ads[0]
 
     def test_reboot_scenario(self):
-        results = []
+        # 측정할 타겟 속성 정의 (요청된 zygote, udeved(ueventd로 간주), bootanim)
+        target_props = {
+            'ueventd': 'ro.boottime.ueventd',
+            'zygote': 'ro.boottime.zygote',
+            'bootanim': 'ro.boottime.bootanim'
+        }
+
+        # 결과 저장을 위한 딕셔너리 초기화
+        results = {key: [] for key in target_props.keys()}
         iteration_count = 10
 
         for i in range(1, iteration_count + 1):
             self.dut.log.info(f"=== Reboot Iteration {i}/{iteration_count} ===")
             
             # 1. 보드 재부팅
-            # dut.reboot()는 adb 연결이 다시 될 때까지 대기합니다.
             self.dut.reboot()
+            # 부팅 완료 대기 (프로퍼티가 확실히 생성되도록 대기)
+            self.dut.wait_for_boot_completion()
             
-            # 2. property에 ro.boottime.sys.boot_completed 이 나올 때 까지 대기 및 값 획득
-            prop_value = None
-            timeout = 60 # seconds
-            start_time = time.time()
-            
-            while time.time() - start_time < timeout:
-                # getprop 명령어로 값 읽기
-                val = self.dut.adb.shell(['getprop', 'ro.boottime.sys.boot_completed']).strip()
-                if val:
-                    prop_value = val
-                    break
-                time.sleep(1)
-            
-            if not prop_value:
-                raise TimeoutError(f"Iteration {i}: Failed to get ro.boottime.sys.boot_completed within {timeout}s")
+            # 2. 각 타겟별 시간 측정
+            for name, prop_key in target_props.items():
+                val = self.dut.adb.shell(['getprop', prop_key]).strip()
 
-            # 3. nano sec 단위로 변환 후 출력
-            try:
-                # ro.boottime.sys.boot_completed 값은 이미 ns 단위입니다.
-                val_ns = int(prop_value)
-                
-                self.dut.log.info(f"Iteration {i} Result: {val_ns} ns (Raw: {prop_value})")
-                results.append(val_ns)
-            except ValueError:
-                self.dut.log.error(f"Iteration {i}: Invalid property value '{prop_value}'")
-                continue
+                # zygote가 비어있으면 zygote64 시도 (64비트 시스템 대응)
+                if name == 'zygote' and not val:
+                    val = self.dut.adb.shell(['getprop', 'ro.boottime.zygote64']).strip()
+
+                if val:
+                    try:
+                        # 3. nano sec 단위로 변환 후 출력 (ro.boottime.* 값은 일반적으로 이미 ns 단위임)
+                        val_ns = int(val)
+                        self.dut.log.info(f"Iteration {i} [{name}]: {val_ns} ns")
+                        results[name].append(val_ns)
+                    except ValueError:
+                        self.dut.log.error(f"Iteration {i} [{name}]: Invalid value '{val}'")
+                else:
+                    self.dut.log.error(f"Iteration {i} [{name}]: Failed to get property")
 
         # 5. min / max / avg 값 출력
-        if results:
-            min_val = min(results)
-            max_val = max(results)
-            avg_val = sum(results) / len(results)
-            
-            self.dut.log.info("=== Final Statistics ===")
-            self.dut.log.info(f"Min: {min_val} ns")
-            self.dut.log.info(f"Max: {max_val} ns")
-            self.dut.log.info(f"Avg: {avg_val:.2f} ns")
-        else:
-            # 결과가 하나도 없으면 테스트 실패 처리
-            assert False, "No valid measurements collected."
+        self.dut.log.info("=== Final Statistics ===")
+        for name, values in results.items():
+            if values:
+                min_val = min(values)
+                max_val = max(values)
+                avg_val = sum(values) / len(values)
+                self.dut.log.info(f"[{name}] Min: {min_val} ns, Max: {max_val} ns, Avg: {avg_val:.2f} ns")
+            else:
+                self.dut.log.error(f"[{name}] No valid measurements collected.")
 
 if __name__ == '__main__':
     test_runner.main()
