@@ -1,0 +1,5 @@
+TestBeds:
+  - Name: RebootTestBed
+    Controllers:
+      AndroidDevice:
+        - serial: <DEVICE_SERIAL_NUMBER>
