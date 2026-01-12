@@ -11,7 +11,7 @@ class LaunchAppTest(base_test.BaseTestClass):
         self.ads = self.register_controller(android_device)
         self.dut = self.ads[0]
         # UiControlSnippet 로드 (패키지명은 빌드 설정에 따라 다를 수 있으나 기본값 사용)
-        self.ui = self.dut.load_snippet('ui', 'com.google.android.mobly.snippet.bundled')
+        self.dut.load_snippet('mbs', 'com.google.android.mobly.snippet.bundled')
 
     def test_youtube_launch_scenario(self):
         iteration_count = 10
@@ -40,12 +40,12 @@ class LaunchAppTest(base_test.BaseTestClass):
                 # 2. class Name: "android.widget.TextView" 의 text="Apps" 를 click
                 # (앱 서랍 진입)
                 self.dut.log.info("Clicking 'Apps'...")
-                self.ui.clickByClassNameAndText("android.widget.TextView", "Apps")
+                self.dut.mbs.clickByClassNameAndText("android.widget.TextView", "Apps")
                 time.sleep(3) # UI 애니메이션 대기
 
                 # 3. content-desc: "YouTube"를 클릭
                 self.dut.log.info("Clicking 'YouTube'...")
-                self.ui.clickByDesc("YouTube")
+                self.dut.mbs.clickByDesc("YouTube")
                 
                 # 4. YouTube 클릭 후 화면에 나오기 까지의 시간을 logcat 기준으로 측정
                 launch_time = self._measure_launch_time()
@@ -80,11 +80,11 @@ class LaunchAppTest(base_test.BaseTestClass):
         start_wait = time.time()
         
         # 정규식: Displayed [패키지명]...: +[시간]
-        pattern = re.compile(r"ActivityTaskManager: Displayed com\.google\.android\.youtube.*:\s+\+([0-9sms]+)")
+        pattern = re.compile(r"Displayed com\.google\.android\.youtube.*:\s+\+([0-9sms]+)")
         
         while time.time() - start_wait < timeout:
             # logcat 덤프 (최근 로그 확인)
-            logs = self.dut.adb.shell(['logcat', '-d', '-b', 'system', '-b', 'main', '-s', 'ActivityTaskManager'])
+            logs = self.dut.adb.shell(['logcat', '-d', '-b', 'system', '-b', 'main', '-s', 'ActivityTaskManager']).decode('utf-8')
             
             # 로그 라인 역순 검색 (최신 로그 우선)
             for line in reversed(logs.splitlines()):
