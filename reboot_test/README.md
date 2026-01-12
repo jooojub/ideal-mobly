@@ -35,7 +35,7 @@ python3 reboot_test.py -c config.yaml
 
 1.  디바이스를 재부팅합니다.
 2.  부팅이 완료될 때까지 대기합니다.
-3.  다음 프로퍼티 값을 획득하여 나노초(ns) 단위로 출력합니다.
+3.  다음 프로퍼티 값을 획득하여 밀리초(ms) 단위로 출력합니다.
     *   `ro.boottime.zygote` (또는 `ro.boottime.zygote64`)
     *   `ro.boottime.ueventd` (udeved)
     *   `ro.boottime.bootanim`

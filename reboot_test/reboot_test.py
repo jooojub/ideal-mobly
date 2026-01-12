@@ -40,10 +40,10 @@ class RebootTest(base_test.BaseTestClass):
 
                 if val:
                     try:
-                        # 3. nano sec 단위로 변환 후 출력 (ro.boottime.* 값은 일반적으로 이미 ns 단위임)
-                        val_ns = int(val)
-                        self.dut.log.info(f"Iteration {i} [{name}]: {val_ns} ns")
-                        results[name].append(val_ns)
+                        # 3. milli sec 단위로 변환 후 출력 (ro.boottime.* 값은 일반적으로 이미 ns 단위임)
+                        val_ms = int(val) // 1000000
+                        self.dut.log.info(f"Iteration {i} [{name}]: {val_ms} ms")
+                        results[name].append(val_ms)
                     except ValueError:
                         self.dut.log.error(f"Iteration {i} [{name}]: Invalid value '{val}'")
                 else:
@@ -56,7 +56,7 @@ class RebootTest(base_test.BaseTestClass):
                 min_val = min(values)
                 max_val = max(values)
                 avg_val = sum(values) / len(values)
-                self.dut.log.info(f"[{name}] Min: {min_val} ns, Max: {max_val} ns, Avg: {avg_val:.2f} ns")
+                self.dut.log.info(f"[{name}] Min: {min_val} ms, Max: {max_val} ms, Avg: {avg_val:.2f} ms")
             else:
                 self.dut.log.error(f"[{name}] No valid measurements collected.")
 
