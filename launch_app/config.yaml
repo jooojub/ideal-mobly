@@ -1,0 +1,5 @@
+TestBeds:
+  - Name: LaunchAppTestBed
+    Controllers:
+      AndroidDevice:
+        - serial: "YOUR_DEVICE_SERIAL"
