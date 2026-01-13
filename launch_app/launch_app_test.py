@@ -101,13 +101,14 @@ class LaunchAppTest(base_test.BaseTestClass):
         # 포맷 예시: "1s234ms", "500ms"
         total_ms = 0
         try:
-            if 's' in duration_str:
+            ss_index = duration_str.find('ms')
+            # 's'가 있고, 'ms'의 일부가 아니거나(즉, ms가 없거나), 'ms'보다 앞에 나오는 경우 (예: 1s234ms)
+            if s_index != -1 and (ms_index == -1 or s_index < ms_index):
                 parts = duration_str.split('s')
                 sec = int(parts[0])
                 ms = int(parts[1].replace('ms', '')) if 'ms' in parts[1] else 0
                 total_ms = sec * 1000 + ms
-            elif 'ms' in duration_str:
-                total_ms = int(duration_str.replace('ms', ''))
+            elif ms_index != -1:n_str.replace('ms', ''))
         except ValueError:
             return None
         return total_ms
