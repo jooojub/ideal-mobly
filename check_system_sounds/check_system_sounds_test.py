@@ -30,32 +30,31 @@ class CheckSystemSoundsTest(base_test.BaseTestClass):
         time.sleep(60)
 
         # 3. content-desc="Open quick settings panel" UI 찾은 후 클릭
-        self.dut.mbs.ui(description="Open quick settings panel").click()
+        self.dut.mbs.clickByDesc("Open quick settings panel")
 
         # 4. 2초 대기
         time.sleep(2)
 
         # 5. content-desc="Open Settings" UI 찾은 후 클릭
-        self.dut.mbs.ui(description="Open Settings").click()
+        self.dut.mbs.clickByDesc("Open Settings")
 
         # 6. 2초 대기
         time.sleep(2)
 
         # 7. Text="System" 나올때 까지 스크롤 후 ui 찾으면 클릭
         # 설정 메뉴는 스크롤이 필요할 수 있으므로 scrollable=True인 컨테이너에서 검색
-        self.dut.mbs.ui(scrollable=True).scroll.to(text="System")
-        self.dut.mbs.ui(text="System").click()
+        self.dut.mbs.scrollToText("System")
+        self.dut.mbs.clickByText("System")
 
         # 8. 2초 대기
         time.sleep(2)
 
         # 9. resource-id="android:id/switch_widget" 이 나올 때 까지 스크롤 후 checked 확인
         # System 메뉴 내부에서도 스크롤이 필요할 수 있음
-        self.dut.mbs.ui(scrollable=True).scroll.to(resourceId="android:id/switch_widget")
+        self.dut.mbs.scrollToId("android:id/switch_widget")
         
-        # 해당 UI의 정보 가져오기
-        switch_widget = self.dut.mbs.ui(resourceId="android:id/switch_widget").info
-        is_checked = switch_widget['checked']
+        # 해당 UI의 정보 가져오기 (새로 추가한 RPC 사용)
+        is_checked = self.dut.mbs.isCheckedById("android:id/switch_widget")
 
         # 10. checked가 true이면 Pass 아니면 Fail
         asserts.assert_true(is_checked, 
